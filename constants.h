@@ -20,17 +20,19 @@ enum globalEvents
     findPath,
     save,
     load,
-    savePath
+    savePath,
+    createCar
 };
 
 
 
 const int width = 600, height = 400;
 const int squareSize = 50;
+const int carWidth = 0.7 * squareSize, carHeight = 0.4 * squareSize;
 
-int path_counter = 0;
+int path_counter = 1;
 
-float speed = 0.005;
+float speed = 5;
 
 
 
@@ -42,6 +44,13 @@ struct squareInfo
     bool selectedForPath = false;
 
     juce::String road = "", depot = "";
+
+    void operator= (const squareInfo& another)
+    {
+        this->x = another.x;
+        this->y = another.y;
+        this->euristic = another.euristic;
+    }
 };
 
 squareInfo square_info;

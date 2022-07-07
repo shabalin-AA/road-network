@@ -29,8 +29,8 @@ public:
 
         g.drawMultiLineText(
             juce::String(square_info.x) + "; " +
-            juce::String(square_info.y) + "\n" +
-            juce::String(square_info.road)  + "\n" +
+            juce::String(square_info.y) + '\n' +
+            juce::String(square_info.road)  + '\n' +
             juce::String(square_info.depot),
                             0,
                             16,

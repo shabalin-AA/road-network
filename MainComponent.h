@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "map.h"
 #include "squareInfo.h"
+#include "car.h"
 
 
 
@@ -34,6 +35,9 @@ public:
         addAndMakeVisible(loadButton);
         loadButton.addListener(this);
 
+        addAndMakeVisible(carButton);
+        carButton.addListener(this);
+
         addChildComponent(map);
         addAndMakeVisible(map);
     }
@@ -58,6 +62,7 @@ public:
         findPathButton.setBounds  (width, 3*buttonHeight, 100, buttonHeight);
         saveButton.setBounds      (width, 4*buttonHeight, 100, buttonHeight);
         loadButton.setBounds      (width, 5*buttonHeight, 100, buttonHeight);
+        carButton.setBounds       (width, 6*buttonHeight, 100, buttonHeight);
     }
 
     void mouseDown (const juce::MouseEvent& event) override
@@ -95,6 +100,11 @@ public:
 
         if (b == &loadButton)
             globalEvent = globalEvents::load;
+
+        if (b == &carButton)
+        {
+            globalEvent = globalEvents::createCar;
+        }
     }
 
 
@@ -109,6 +119,7 @@ private:
     juce::TextButton findPathButton   {"find path"};
     juce::TextButton saveButton       {"save"};
     juce::TextButton loadButton       {"load"};
+    juce::TextButton carButton        {"car"};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

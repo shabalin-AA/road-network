@@ -12,6 +12,7 @@
 
 #include <JuceHeader.h>
 #include "square.h"
+#include "car.h"
 #include <fstream>
 #include <vector>
 #include <cmath>
@@ -49,6 +50,7 @@ public:
                     map[i][j].depot = false;
                 }
 
+            path_counter = 1;
             globalEvent = globalEvents::globalNoEvent;
         }
 
@@ -106,6 +108,30 @@ public:
             }
 
             map_load.close();
+        }
+
+        if (globalEvent == globalEvents::createCar)
+        {
+            addAndMakeVisible(car);
+            car.setPath(path_counter - 1);
+
+            car.setBounds(
+                car.x + (squareSize - carWidth) / 2,
+                car.y + (squareSize - carHeight) / 2,
+                carWidth,
+                carHeight);
+
+            globalEvent = globalEvents::globalNoEvent;
+        }
+
+        if (car.ready)
+        {
+            car.updCoords();
+            car.setBounds(
+                car.x + (squareSize - carWidth) / 2,
+                car.y + (squareSize - carHeight) / 2,
+                carWidth,
+                carHeight);
         }
     }
 
@@ -273,9 +299,7 @@ public:
             {
                 if (find_min[i].euristic <= min.euristic)
                 {
-                    min.x = find_min[i].x;
-                    min.y = find_min[i].y;
-                    min.euristic = find_min[i].euristic;
+                    min = find_min[i];
 
                     log << '\n' << "min:" << min.x << ' ' << min.y << ' ' << min.euristic << '\n';
                 }
@@ -292,11 +316,17 @@ public:
         fout << e.x << ' ' << e.y << '\n';
 
         clearSelectedForPath();
+        globalEvent = globalEvents::globalNoEvent;
     }
+
+
+
 
 
 private:
     square map[width / squareSize + 2][height / squareSize + 2];
+
+    Car car;
 
     std::vector <squareInfo> route; int route_counter = 0;
 };
