@@ -17,6 +17,8 @@
 #include <vector>
 #include <cmath>
 
+
+
 std::string path_file_name;
 std::string map_file = "savings/map_save.txt";
 
@@ -115,16 +117,10 @@ public:
             addAndMakeVisible(car);
             car.setPath(path_counter - 1);
 
-            car.setBounds(
-                car.x + (squareSize - carWidth) / 2,
-                car.y + (squareSize - carHeight) / 2,
-                carWidth,
-                carHeight);
-
             globalEvent = globalEvents::globalNoEvent;
         }
 
-        if (car.ready)
+        if (car.ready && globalEvent == globalEvents::start)
         {
             car.updCoords();
             car.setBounds(
@@ -234,8 +230,11 @@ public:
 
         int max_iter = 0;
         while (!(b.x == e.x && b.y == e.y) &&
-               max_iter < width * height)
+               max_iter < 100)
         {
+            if (map[b.x][b.y].depot)
+                clearSelectedForPath();
+
             map[b.x][b.y].selectedForPath = true;
 
             fout << b.x << ' ' << b.y << '\n';
@@ -261,6 +260,7 @@ public:
                 down.x = b.x;
                 down.y = b.y + 1;
                 down.euristic = (abs(e.x - down.x) + abs(e.y - down.y));
+
 
 
             std::vector <squareInfo> find_min; int vect_size = 0;
@@ -294,27 +294,31 @@ public:
 
 
 
-            squareInfo min; min.euristic = 100;
-            for (int i = 0; i < vect_size; i++)
+            if (find_min.size() == 0)
+                break;
+            else
             {
-                if (find_min[i].euristic <= min.euristic)
+                squareInfo min; min.euristic = 100;
+                for (int i = 0; i < vect_size; i++)
                 {
-                    min = find_min[i];
+                    if (find_min[i].euristic <= min.euristic)
+                    {
+                        min = find_min[i];
 
-                    log << '\n' << "min:" << min.x << ' ' << min.y << ' ' << min.euristic << '\n';
+                        log << '\n' << "min:" << min.x << ' ' << min.y << ' ' << min.euristic << '\n';
+                    }
                 }
+
+                find_min.erase(find_min.begin(), find_min.begin() + vect_size);
+                vect_size = 0;
+
+                b = min;
+                log << '\n' << "new b:" << b.x << ' ' << b.y << ' ' << b.euristic << '\n';
+                max_iter++;
             }
-
-            find_min.erase(find_min.begin(), find_min.begin() + vect_size);
-            vect_size = 0;
-
-            b.x = min.x;
-            b.y = min.y;
-            max_iter++;
         }
 
         fout << e.x << ' ' << e.y << '\n';
-
         clearSelectedForPath();
         globalEvent = globalEvents::globalNoEvent;
     }

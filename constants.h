@@ -21,7 +21,8 @@ enum globalEvents
     save,
     load,
     savePath,
-    createCar
+    createCar,
+    start
 };
 
 

@@ -38,6 +38,9 @@ public:
         addAndMakeVisible(carButton);
         carButton.addListener(this);
 
+        addAndMakeVisible(startButton);
+        startButton.addListener(this);
+
         addChildComponent(map);
         addAndMakeVisible(map);
     }
@@ -63,6 +66,7 @@ public:
         saveButton.setBounds      (width, 4*buttonHeight, 100, buttonHeight);
         loadButton.setBounds      (width, 5*buttonHeight, 100, buttonHeight);
         carButton.setBounds       (width, 6*buttonHeight, 100, buttonHeight);
+        startButton.setBounds     (width, 7*buttonHeight, 100, buttonHeight);
     }
 
     void mouseDown (const juce::MouseEvent& event) override
@@ -102,8 +106,14 @@ public:
             globalEvent = globalEvents::load;
 
         if (b == &carButton)
-        {
             globalEvent = globalEvents::createCar;
+
+        if (b == &startButton)
+        {
+            if (globalEvent == globalEvents::start)
+                globalEvent = globalEvents::globalNoEvent;
+            else
+                globalEvent = globalEvents::start;
         }
     }
 
@@ -120,6 +130,7 @@ private:
     juce::TextButton saveButton       {"save"};
     juce::TextButton loadButton       {"load"};
     juce::TextButton carButton        {"car"};
+    juce::TextButton startButton      {"start/stop"};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

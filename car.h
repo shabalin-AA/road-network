@@ -18,7 +18,7 @@
 class Car : public juce::Component
 {
 public:
-    int x = 0, y = 0;
+    int x = width + 20, y = height + 20;
     bool ready = false;
 
 
