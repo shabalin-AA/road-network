@@ -2,7 +2,7 @@
   ==============================================================================
 
     map.h
-    Created: 30 Jun 2022 6:56:09pm
+    Created: 8 Aug 2022 8:04:34am
     Author:  l
 
   ==============================================================================
@@ -14,323 +14,125 @@
 #include "square.h"
 #include "car.h"
 #include <fstream>
-#include <vector>
-#include <cmath>
 
 
 
-std::string path_file_name;
-std::string map_file = "savings/map_save.txt";
-
-
-
-class Map : public juce::Component
+class map  : public juce::Component
 {
 public:
-    Map()
+    map()
     {
-        setSize (width, height);
+        setSize (mapWidth, mapHeight);
 
-        for (int i = 0; i < width / squareSize + 2; i++)
-            for (int j = 0; j < height / squareSize + 2; j++)
+        for (int i = 0; i < mapWidth / squareSize; i++)
+        {
+            for (int j = 0; j < mapHeight / squareSize; j++)
             {
-                addChildComponent(map[i][j]);
-                addAndMakeVisible(map[i][j]);
+                addAndMakeVisible(Map[i][j]);
+                Map[i][j].setBounds(i * squareSize,
+                                    j * squareSize,
+                                    squareSize,
+                                    squareSize);
             }
+        }
     }
 
-    ~Map() override {}
+    ~map() override
+    {
+    }
 
     void paint (juce::Graphics& g) override
     {
-        if (globalEvent == globalEvents::globalClear)
-        {
-            for (int i = 0; i < width / squareSize + 2; i++)
-                for (int j = 0; j < height / squareSize + 2; j++)
-                {
-                    map[i][j].road = false;
-                    map[i][j].depot = false;
-                }
-
-            path_counter = 1;
-            globalEvent = globalEvents::globalNoEvent;
-        }
-
-
-
-        if (globalEvent == globalEvents::save)
-        {
-            std::ofstream map_save(map_file);
-
-            for (int i = 0; i < width / squareSize + 2; i++)
-            {
-                for (int j = 0; j < height / squareSize + 2; j++)
-                {
-                    if (map[i][j].depot)
-                        map_save << 'd';
-                    else if (map[i][j].road)
-                        map_save << 'r';
-                    else
-                        map_save << 'e';
-                }
-
-                map_save << '\n';
-            }
-
-            map_save.close();
-        }
-
-
-
-        if (globalEvent == globalEvents::load)
-        {
-            std::ifstream map_load(map_file);
-            std::string str;
-
-            for (int i = 0; getline(map_load, str); i++)
-            {
-                for (int j = 0; j < str.length(); j++)
-                {
-                    if (str[j] == 'e')
-                    {
-                        map[i][j].road = false;
-                        map[i][j].depot = false;
-                    }
-                    else if (str[j] == 'r')
-                    {
-                        map[i][j].road = true;
-                        map[i][j].depot = false;
-                    }
-                    else if (str[j] == 'd')
-                    {
-                        map[i][j].road = true;
-                        map[i][j].depot = true;
-                    }
-                }
-            }
-
-            map_load.close();
-        }
-
-        if (globalEvent == globalEvents::createCar)
-        {
-            addAndMakeVisible(car);
-            car.setPath(path_counter - 1);
-
-            globalEvent = globalEvents::globalNoEvent;
-        }
-
-        if (car.ready && globalEvent == globalEvents::start)
-        {
-            car.updCoords();
-            car.setBounds(
-                car.x + (squareSize - carWidth) / 2,
-                car.y + (squareSize - carHeight) / 2,
-                carWidth,
-                carHeight);
-        }
+        if (carFlag)
+            move();
     }
 
     void resized() override
     {
-        for (int i = 0; i < width / squareSize + 2; i++)
-            for (int j = 0; j < height / squareSize + 2; j++)
-            {
-                map[i][j].X = i * squareSize;
-                map[i][j].Y = j * squareSize;
-
-                map[i][j].setBounds(
-                    map[i][j].X - squareSize, map[i][j].Y - squareSize,
-                    squareSize, squareSize);
-            }
+        car.setBounds(car.x, car.y, squareSize, squareSize);
     }
 
-    void checkSelected()
+
+
+    void save ()
     {
-        for (int i = 0; i < width / squareSize + 2; i++)
-            for (int j = 0; j < height / squareSize + 2; j++)
-            {
-                if (!map[i][j].road)
-                    map[i][j].selectedForPath = false;
+        std::ofstream map_save(map_file);
 
-                if (map[i][j].selected)
-                {
-                    square_info.x = i /*map[i][j].X / squareSize*/;
-                    square_info.y = j /*map[i][j].Y / squareSize*/;
-
-                    if (map[i][j].road)
-                        square_info.road = "road";
-                    else
-                        square_info.road = "no road";
-
-                    if (map[i][j].depot)
-                        square_info.depot = "depot";
-                    else
-                        square_info.depot = "no depot";
-                }
-
-                if (globalEvent == globalEvents::savePath)
-                {
-                    std::ofstream fout(
-                        "savings/path_" +
-                        std::to_string(path_counter) +
-                        ".txt"
-                    );
-                    path_counter++;
-
-                    if (route_counter > 1)
-                        for (int i = 0; i + 1 < route_counter; i++)
-                            pathFinding(route[i], route[i+1], fout);
-
-                    fout.close();
-
-                    globalEvent = globalEvents::globalNoEvent;
-                    route.erase(route.begin(), route.begin() + route_counter);
-                    route_counter = 0;
-                }
-
-                if (map[i][j].selectedForPath)
-                {
-                    if (checkRoute(i, j))
-                    {
-                        squareInfo square_for_path;
-                        square_for_path.x = i;
-                        square_for_path.y = j;
-
-                        route.push_back(square_for_path);
-                        route_counter++;
-                    }
-                }
-            }
-    }
-
-    bool checkRoute (int x, int y)
-    {
-        for (int i = 0; i < route_counter; i++)
-            if (route[i].x == x && route[i].y == y)
-                return false;
-
-        return true;
-    }
-
-    void clearSelectedForPath ()
-    {
-        for (int i = 0; i < width / squareSize + 2; i++)
-            for (int j = 0; j < height / squareSize + 2; j++)
-                map[i][j].selectedForPath = false;
-    }
-
-    void pathFinding (squareInfo b, squareInfo e, std::ofstream& fout)
-    {
-        clearSelectedForPath();
-
-        std::ofstream log("savings/log.txt");
-        log << "b:" << b.x << ' ' << b.y << '\n';
-        log << "e:" << e.x << ' ' << e.y << '\n';
-
-        int max_iter = 0;
-        while (!(b.x == e.x && b.y == e.y) &&
-               max_iter < 100)
+        for (int i = 0; i < mapWidth / squareSize; i++)
         {
-            if (map[b.x][b.y].depot)
-                clearSelectedForPath();
-
-            map[b.x][b.y].selectedForPath = true;
-
-            fout << b.x << ' ' << b.y << '\n';
-
-
-
-            squareInfo left;
-                left.x = b.x - 1;
-                left.y = b.y;
-                left.euristic = (abs(e.x - left.x) + abs(e.y - left.y));
-
-            squareInfo right;
-                right.x = b.x + 1;
-                right.y = b.y;
-                right.euristic = (abs(e.x - right.x) + abs(e.y - right.y));
-
-            squareInfo up;
-                up.x = b.x;
-                up.y = b.y - 1;
-                up.euristic = (abs(e.x - up.x) + abs(e.y - up.y));
-
-            squareInfo down;
-                down.x = b.x;
-                down.y = b.y + 1;
-                down.euristic = (abs(e.x - down.x) + abs(e.y - down.y));
-
-
-
-            std::vector <squareInfo> find_min; int vect_size = 0;
-            if (map[left.x][left.y].road &&
-                !map[left.x][left.y].selectedForPath)
+            for (int j = 0; j < mapHeight / squareSize; j++)
             {
-                find_min.push_back(left); vect_size++;
-                log << "left" << ' ';
+                if (Map[i][j].depot)
+                    map_save << 'd';
+                else if (Map[i][j].road)
+                    map_save << 'r';
+                else
+                    map_save << 'e';
             }
+            map_save << '\n';
+        }
+        map_save.close();
+    }
 
-            if (map[right.x][right.y].road &&
-                !map[right.x][right.y].selectedForPath)
+    void load ()
+    {
+        std::ifstream map_load(map_file);
+        std::string str;
+
+        for (int i = 0; getline(map_load, str); i++)
+        {
+            for (int j = 0; j < str.length(); j++)
             {
-                find_min.push_back(right); vect_size++;
-                log << "right" << ' ';
-            }
-
-            if (map[up.x][up.y].road &&
-                !map[up.x][up.y].selectedForPath)
-            {
-                find_min.push_back(up); vect_size++;
-                log << "up" << ' ';
-            }
-
-            if (map[down.x][down.y].road &&
-                !map[down.x][down.y].selectedForPath)
-            {
-                find_min.push_back(down); vect_size++;
-                log << "down" << ' ';
-            }
-
-
-
-            if (find_min.size() == 0)
-                break;
-            else
-            {
-                squareInfo min; min.euristic = 100;
-                for (int i = 0; i < vect_size; i++)
+                if (str[j] == 'e')
                 {
-                    if (find_min[i].euristic <= min.euristic)
-                    {
-                        min = find_min[i];
-
-                        log << '\n' << "min:" << min.x << ' ' << min.y << ' ' << min.euristic << '\n';
-                    }
+                    Map[i][j].road = false;
+                    Map[i][j].depot = false;
                 }
-
-                find_min.erase(find_min.begin(), find_min.begin() + vect_size);
-                vect_size = 0;
-
-                b = min;
-                log << '\n' << "new b:" << b.x << ' ' << b.y << ' ' << b.euristic << '\n';
-                max_iter++;
+                else if (str[j] == 'r')
+                {
+                    Map[i][j].road = true;
+                    Map[i][j].depot = false;
+                }
+                else if (str[j] == 'd')
+                {
+                    Map[i][j].road = true;
+                    Map[i][j].depot = true;
+                }
             }
         }
 
-        fout << e.x << ' ' << e.y << '\n';
-        clearSelectedForPath();
-        globalEvent = globalEvents::globalNoEvent;
+        map_load.close();
+        repaint();
     }
 
+    void clear ()
+    {
+        for (int i = 0; i < mapWidth / squareSize; i++)
+        {
+            for (int j = 0; j < mapHeight / squareSize; j++)
+            {
+                Map[i][j].road = false;
+                Map[i][j].depot = false;
+            }
+        }
+        repaint();
+    }
 
+    void move ()
+    {
+        car.x++;
+        car.y++;
+        resized();
+    }
 
-
+    void addCar ()
+    {
+        addAndMakeVisible(car);
+        carFlag = true;
+    }
 
 private:
-    square map[width / squareSize + 2][height / squareSize + 2];
-
+    square Map[mapWidth / squareSize][mapHeight / squareSize];
     Car car;
-
-    std::vector <squareInfo> route; int route_counter = 0;
+    bool carFlag = false;
 };

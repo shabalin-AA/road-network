@@ -10,11 +10,11 @@
 #include "MainComponent.h"
 
 //==============================================================================
-class roadnetworkApplication  : public juce::JUCEApplication
+class roadnetwork2Application  : public juce::JUCEApplication
 {
 public:
     //==============================================================================
-    roadnetworkApplication() {}
+    roadnetwork2Application() {}
 
     const juce::String getApplicationName() override       { return ProjectInfo::projectName; }
     const juce::String getApplicationVersion() override    { return ProjectInfo::versionString; }
@@ -102,4 +102,4 @@ private:
 
 //==============================================================================
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION (roadnetworkApplication)
+START_JUCE_APPLICATION (roadnetwork2Application)

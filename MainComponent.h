@@ -2,9 +2,6 @@
 
 #include <JuceHeader.h>
 #include "map.h"
-#include "squareInfo.h"
-#include "car.h"
-
 
 
 class MainComponent  : public juce::Component,
@@ -13,21 +10,12 @@ class MainComponent  : public juce::Component,
 public:
     MainComponent()
     {
-        setSize (width + 100, height + 100);
-
-        addAndMakeVisible(square_info_component);
-
-        addAndMakeVisible(buildDepotButton);
-        buildDepotButton.addListener(this);
+        setSize (mapWidth - mapWidth % squareSize + frame * 2,
+                 mapHeight - mapHeight % squareSize + frame * 2);
+        addAndMakeVisible(M);
 
         addAndMakeVisible(clearButton);
         clearButton.addListener(this);
-
-        addAndMakeVisible(clearAllButton);
-        clearAllButton.addListener(this);
-
-        addAndMakeVisible(findPathButton);
-        findPathButton.addListener(this);
 
         addAndMakeVisible(saveButton);
         saveButton.addListener(this);
@@ -37,100 +25,50 @@ public:
 
         addAndMakeVisible(carButton);
         carButton.addListener(this);
-
-        addAndMakeVisible(startButton);
-        startButton.addListener(this);
-
-        addChildComponent(map);
-        addAndMakeVisible(map);
     }
 
-    ~MainComponent() override {}
+    ~MainComponent() override
+    {
+    }
 
     void paint (juce::Graphics& g) override
     {
-        map.checkSelected();
+        //
     }
 
     void resized() override
     {
-        map.setBounds(0, 0, width, height);
+        M.setBounds(frame, frame,  mapWidth, mapHeight);
 
-        square_info_component.setBounds(0, height, 200, 100);
-
-        int buttonHeight = 30;
-        buildDepotButton.setBounds(width, 0,              100, buttonHeight);
-        clearButton.setBounds     (width, 1*buttonHeight, 100, buttonHeight);
-        clearAllButton.setBounds  (width, 2*buttonHeight, 100, buttonHeight);
-        findPathButton.setBounds  (width, 3*buttonHeight, 100, buttonHeight);
-        saveButton.setBounds      (width, 4*buttonHeight, 100, buttonHeight);
-        loadButton.setBounds      (width, 5*buttonHeight, 100, buttonHeight);
-        carButton.setBounds       (width, 6*buttonHeight, 100, buttonHeight);
-        startButton.setBounds     (width, 7*buttonHeight, 100, buttonHeight);
+        clearButton.setBounds(0 * squareSize, 0, 2 * squareSize, frame);
+        saveButton.setBounds (2 * squareSize, 0, 2 * squareSize, frame);
+        loadButton.setBounds (4 * squareSize, 0, 2 * squareSize, frame);
+        carButton.setBounds  (6 * squareSize, 0, 2 * squareSize, frame);
     }
 
-    void mouseDown (const juce::MouseEvent& event) override
-    {
-        globalEvent = globalEvents::globalNoEvent;
-        repaint();
-    }
+
+
+    juce::TextButton saveButton  {"save"};
+    juce::TextButton loadButton  {"load"};
+    juce::TextButton clearButton {"clear"};
+    juce::TextButton carButton   {"car"};
 
     void buttonClicked (juce::Button* b)
     {
-        if (b == &buildDepotButton)
-        {
-            if (globalEvent == buildDepot)
-                globalEvent = globalNoEvent;
-            else
-                globalEvent = buildDepot;
-        }
-
-        if (b == &clearAllButton)
-            globalEvent = globalEvents::globalClear;
-
-        if (b == &clearButton)
-            globalEvent = globalEvents::clear;
-
-        if (b == &findPathButton)
-        {
-            if (globalEvent == globalEvents::findPath)
-                globalEvent = globalEvents::savePath;
-            else
-                globalEvent = globalEvents::findPath;
-        }
-
         if (b == &saveButton)
-            globalEvent = globalEvents::save;
-
+            M.save();
         if (b == &loadButton)
-            globalEvent = globalEvents::load;
-
+            M.load();
+        if (b == &clearButton)
+            M.clear();
         if (b == &carButton)
-            globalEvent = globalEvents::createCar;
-
-        if (b == &startButton)
-        {
-            if (globalEvent == globalEvents::start)
-                globalEvent = globalEvents::globalNoEvent;
-            else
-                globalEvent = globalEvents::start;
-        }
+            M.addCar();
     }
 
 
+
 private:
-    Map map;
-
-    squareInfoComponent square_info_component;
-
-    juce::TextButton buildDepotButton {"biuld depot"};
-    juce::TextButton clearButton      {"clear"};
-    juce::TextButton clearAllButton   {"clear all"};
-    juce::TextButton findPathButton   {"find path"};
-    juce::TextButton saveButton       {"save"};
-    juce::TextButton loadButton       {"load"};
-    juce::TextButton carButton        {"car"};
-    juce::TextButton startButton      {"start/stop"};
+    map M;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

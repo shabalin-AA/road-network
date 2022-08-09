@@ -1,8 +1,8 @@
 /*
   ==============================================================================
 
-    squareInfo.h
-    Created: 3 Jul 2022 11:38:23am
+    car.h
+    Created: 8 Aug 2022 8:04:42am
     Author:  l
 
   ==============================================================================
@@ -11,114 +11,24 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <vector>
-#include <fstream>
 #include "constants.h"
+#include <unistd.h>
+
+
 
 class Car : public juce::Component
 {
 public:
-    int x = width + 20, y = height + 20;
-    bool ready = false;
+    int x = 0, y = 0;
 
-
-
-    Car()
+    Car ()
     {
-        setSize(carWidth, carHeight);
+        setSize(squareSize, squareSize);
     }
-
-    ~Car() override {}
 
     void paint (juce::Graphics& g) override
     {
-        g.fillAll(juce::Colours::yellow);
-
-        if (ready)
-            g.drawText("y", 0, 0,
-                       carWidth,
-                       carHeight,
-                       juce::Justification::centred);
-        else
-            g.drawText("n", 0, 0,
-                       carWidth,
-                       carHeight,
-                       juce::Justification::centred);
+        g.setColour(juce::Colours::yellow);
+        g.fillRect(5, 5, squareSize - 10, squareSize - 10);
     }
-
-    void resized() override
-    {
-
-    }
-
-
-
-    squareInfo stringToPoint (std::string coords)
-    {
-        squareInfo p;
-
-        std::string x_temp = "", y_temp = "";
-        int i = 0;
-        for (; coords[i] != ' '; i++);
-        x_temp = coords.substr(0, i);
-
-        int j = i;
-        for (; coords[j] != '\0'; j++);
-        y_temp = coords.substr(i + 1, j - i);
-
-        p.x = std::stoi(x_temp);
-        p.y = std::stoi(y_temp);
-
-        return p;
-    }
-
-    void setPath (int pathNumber = 1)
-    {
-        std::ifstream fin("savings/path_" + std::to_string(pathNumber) + ".txt");
-
-        if (fin.is_open())
-        {
-            std::string temp_point;
-            while (getline(fin, temp_point))
-            {
-                squareInfo point = stringToPoint(temp_point);
-                point.x = (point.x - 1) * squareSize;
-                point.y = (point.y - 1) * squareSize;
-
-                //x = point.x; y = point.y;
-
-                car_path.push_back(point);
-                car_path_counter++;
-            }
-
-            ready = true;
-            x = car_path[0].x; y = car_path[0].y;
-        }
-    }
-
-    void updCoords ()
-    {
-        if (position + 2 > car_path_counter)
-            ready = false;
-
-        if (x < car_path[position + 1].x)
-            x += speed;
-        if (x > car_path[position + 1].x)
-            x -= speed;
-        if (y < car_path[position + 1].y)
-            y += speed;
-        if (y > car_path[position + 1].y)
-            y -= speed;
-
-        if (x == car_path[position + 1].x && y == car_path[position + 1].y)
-            position++;
-    }
-
-
-
-private:
-
-    std::vector <squareInfo> car_path; int car_path_counter = 0;
-    int position = 0;
-
 };

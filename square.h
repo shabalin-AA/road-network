@@ -2,7 +2,7 @@
   ==============================================================================
 
     square.h
-    Created: 30 Jun 2022 6:06:17pm
+    Created: 8 Aug 2022 8:04:48am
     Author:  l
 
   ==============================================================================
@@ -14,84 +14,48 @@
 #include "constants.h"
 
 
-
 class square  : public juce::Component
 {
 public:
-    int X = 0, Y = 0;
-
     bool road = false, depot = false;
-    bool selected = false;
-    bool selectedForPath = false;
 
-
-
-    square ()
+    square()
     {
         setSize (squareSize, squareSize);
     }
 
-    square (const square& another)
+    ~square() override
     {
-        this->X = another.X;
-        this->Y = another.Y;
-        this->road = another.road;
-        this->depot = another.depot;
     }
-
-    ~square () override {}
 
     void paint (juce::Graphics& g) override
     {
-        if (selected || selectedForPath)
-        {
-            g.fillAll(juce::Colours::palegreen);
-
-            juce::Rectangle<int> select(0, 0, squareSize, squareSize);
-            g.setColour(juce::Colours::grey);
-            g.drawRect(select, 2.0f);
-
-            repaint();
-        }
-        else
-        {
-            g.fillAll(juce::Colours::palegreen);
-            repaint();
-        }
-
-
+        g.fillAll(juce::Colours::lightgreen);
 
         if (road)
         {
-            int border = squareSize * 0.1;
-            juce::Rectangle<int> road(
-                border,
-                border,
-                squareSize - 2*border,
-                squareSize - 2*border);
             g.setColour(juce::Colours::darkgrey);
-            g.fillRect(road);
+            g.fillRect(1, 1, squareSize - 2, squareSize - 2);
         }
-
-
 
         if (depot)
         {
-            int border = squareSize * 0.1;
-            juce::Rectangle<int> road(
-                border,
-                border,
-                squareSize - 2*border,
-                squareSize - 2*border);
             g.setColour(juce::Colours::brown);
-            g.fillRect(road);
+            g.fillRect(1, 1, squareSize - 2, squareSize - 2);
         }
 
-
-
-        juce::Rectangle<int> frame(0, 0, squareSize, squareSize);
-        g.setColour(juce::Colours::lightgrey);
-        g.drawRect(frame, 1.0f);
+        int thickness;
+        if (chosen)
+        {
+            thickness = 2;
+            g.setColour(juce::Colours::darkgrey);
+        }
+        else
+        {
+            thickness = 1;
+            g.setColour(juce::Colours::grey);
+        }
+        g.drawRect(0, 0, squareSize, squareSize, thickness);
     }
 
     void resized() override
@@ -101,55 +65,30 @@ public:
 
     void mouseEnter (const juce::MouseEvent& event) override
     {
-        selected = true;
+        chosen = true;
+        repaint();
     }
 
     void mouseExit (const juce::MouseEvent& event) override
     {
-        selected = false;
+        chosen = false;
+        repaint();
     }
 
     void mouseDown (const juce::MouseEvent& event) override
     {
-        if (globalEvent == globalEvents::findPath && depot)
-            selectedForPath = !selectedForPath;
-
-        if (globalEvent == globalEvents::buildDepot && !depot)
-        {
-            depot = true;
-            globalEvent = globalEvents::globalNoEvent;
-        }
-
-        if (!road)
-            road = true;
-
-        if (globalEvent == globalEvents::clear)
-        {
-            depot = false;
-            road = false;
-        }
+        road = !road;
+        repaint();
     }
 
-    void operator= (square another)
+    void mouseDoubleClick (const juce::MouseEvent& event) override
     {
-        this->X               = another.X;
-        this->Y               = another.Y;
-        this->road            = another.road;
-        this->depot           = another.depot;
-    }
-
-    bool operator== (square& another)
-    {
-        if (this->X               == another.X &&
-            this->Y               == another.Y &&
-            this->road            == another.road &&
-            this->depot           == another.depot
-        )
-            return true;
-        else
-            return false;
+        depot = !depot;
+        repaint();
     }
 
 
 private:
+    bool chosen;
+
 };

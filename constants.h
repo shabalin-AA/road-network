@@ -2,7 +2,7 @@
   ==============================================================================
 
     constants.h
-    Created: 30 Jun 2022 7:18:08pm
+    Created: 8 Aug 2022 8:43:32am
     Author:  l
 
   ==============================================================================
@@ -10,48 +10,14 @@
 
 #pragma once
 
-int globalEvent = -1;
-enum globalEvents
+const int squareSize = 45;
+
+const int frame = 30;
+
+const int mapWidth = 600, mapHeight = 400;
+std::string map_file = "savings/map_save.txt";
+
+struct point
 {
-    globalNoEvent,
-    buildDepot,
-    globalClear,
-    clear,
-    findPath,
-    save,
-    load,
-    savePath,
-    createCar,
-    start
+    int x, y;
 };
-
-
-
-const int width = 600, height = 400;
-const int squareSize = 50;
-const int carWidth = 0.7 * squareSize, carHeight = 0.4 * squareSize;
-
-int path_counter = 1;
-
-float speed = 5;
-
-
-
-struct squareInfo
-{
-    int x = 0, y = 0, wt = 1;
-    double euristic = 0;
-
-    bool selectedForPath = false;
-
-    juce::String road = "", depot = "";
-
-    void operator= (const squareInfo& another)
-    {
-        this->x = another.x;
-        this->y = another.y;
-        this->euristic = another.euristic;
-    }
-};
-
-squareInfo square_info;
